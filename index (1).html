@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>THE TACO STOP — Spin & Win</title>
+<style>
+  :root{
+    --orange:#ff6b35;
+    --red:#d7263d;
+    --yellow:#ffc93c;
+    --green:#2ec4b6;
+    --dark:#2b2118;
+    --cream:#fff8ee;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    font-family:'Trebuchet MS', Verdana, sans-serif;
+    background:linear-gradient(160deg,var(--orange),var(--red));
+    color:var(--dark);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:24px 16px 60px;
+  }
+  header{
+    text-align:center;
+    color:var(--cream);
+    margin-bottom:8px;
+  }
+  header h1{
+    font-size:2.4rem;
+    margin:0;
+    text-shadow:2px 2px 0 var(--dark);
+    letter-spacing:1px;
+  }
+  header p{
+    margin:6px 0 0;
+    font-size:1.05rem;
+    opacity:0.95;
+  }
+  .truck-emoji{font-size:2rem;}
+
+  .wheel-wrap{
+    position:relative;
+    width:min(360px, 88vw);
+    height:min(360px, 88vw);
+    margin:28px auto 18px;
+  }
+  .pointer{
+    position:absolute;
+    top:-14px;
+    left:50%;
+    transform:translateX(-50%);
+    width:0;
+    height:0;
+    border-left:16px solid transparent;
+    border-right:16px solid transparent;
+    border-top:26px solid var(--dark);
+    z-index:5;
+    filter:drop-shadow(0 2px 2px rgba(0,0,0,.4));
+  }
+  #wheel{
+    width:100%;
+    height:100%;
+    border-radius:50%;
+    border:8px solid var(--dark);
+    box-shadow:0 8px 24px rgba(0,0,0,.35), inset 0 0 0 4px var(--yellow);
+    transition: transform 4.5s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+    transform:rotate(0deg);
+  }
+  .hub{
+    position:absolute;
+    top:50%;left:50%;
+    width:56px;height:56px;
+    background:var(--yellow);
+    border:4px solid var(--dark);
+    border-radius:50%;
+    transform:translate(-50%,-50%);
+    display:flex;align-items:center;justify-content:center;
+    font-size:1.6rem;
+    z-index:4;
+  }
+
+  #spinBtn{
+    background:var(--dark);
+    color:var(--yellow);
+    border:none;
+    padding:14px 38px;
+    font-size:1.15rem;
+    font-weight:bold;
+    border-radius:40px;
+    cursor:pointer;
+    box-shadow:0 6px 0 #1a130d;
+    letter-spacing:1px;
+    transition:transform .1s;
+  }
+  #spinBtn:active{
+    transform:translateY(4px);
+    box-shadow:0 2px 0 #1a130d;
+  }
+  #spinBtn:disabled{
+    opacity:0.6;
+    cursor:not-allowed;
+  }
+
+  .result{
+    margin-top:22px;
+    min-height:90px;
+    text-align:center;
+    color:var(--cream);
+  }
+  .result-card{
+    background:var(--cream);
+    color:var(--dark);
+    padding:18px 26px;
+    border-radius:16px;
+    display:inline-block;
+    box-shadow:0 6px 18px rgba(0,0,0,.3);
+    border:3px dashed var(--red);
+    animation:pop .35s ease;
+  }
+  .result-card h2{
+    margin:0 0 6px;
+    color:var(--red);
+    font-size:1.5rem;
+  }
+  .result-card p{margin:0;font-size:.95rem;}
+  .code{
+    display:inline-block;
+    margin-top:10px;
+    background:var(--yellow);
+    padding:4px 12px;
+    border-radius:8px;
+    font-weight:bold;
+    letter-spacing:2px;
+  }
+  @keyframes pop{
+    0%{transform:scale(.7);opacity:0;}
+    100%{transform:scale(1);opacity:1;}
+  }
+
+  footer{
+    margin-top:40px;
+    color:var(--cream);
+    opacity:.85;
+    font-size:.85rem;
+    text-align:center;
+  }
+
+  .rules{
+    max-width:480px;
+    margin-top:24px;
+    background:rgba(0,0,0,.18);
+    color:var(--cream);
+    padding:14px 18px;
+    border-radius:12px;
+    font-size:.85rem;
+    line-height:1.5;
+  }
+  .rules h3{margin:0 0 6px;font-size:1rem;}
+
+  .coupon-preview{
+    margin-top:14px;
+    max-width:280px;
+    border-radius:12px;
+    box-shadow:0 6px 18px rgba(0,0,0,.3);
+    display:block;
+  }
+  .save-btn{
+    margin-top:12px;
+    background:var(--green);
+    color:var(--dark);
+    border:none;
+    padding:10px 22px;
+    font-size:1rem;
+    font-weight:bold;
+    border-radius:30px;
+    cursor:pointer;
+    box-shadow:0 4px 0 #1c8f85;
+  }
+  .save-btn:active{
+    transform:translateY(3px);
+    box-shadow:0 1px 0 #1c8f85;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span class="truck-emoji">🌮</span> THE TACO STOP <span class="truck-emoji">🚚</span></h1>
+  <p>Spin the wheel for a chance to win a discount on your next order!</p>
+</header>
+
+<div class="wheel-wrap">
+  <div class="pointer"></div>
+  <svg id="wheel" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg"></svg>
+  <div class="hub">🌶️</div>
+</div>
+
+<button id="spinBtn">SPIN THE WHEEL</button>
+
+<div class="result" id="result"></div>
+<canvas id="couponCanvas" width="640" height="380" style="display:none;"></canvas>
+
+<div class="rules">
+  <h3>How it works</h3>
+  <p>Each device gets ONE spin, ever, for a chance to win a discount code, redeemable at THE TACO STOP food truck. $1 OFF applies to purchases of $10 or more. $2 OFF applies to purchases of $20 or more. Show your coupon to the crew at the window when you order. One redemption per coupon. Some slices are "Try Again" — better luck next time!</p>
+</div>
+
+<footer>
+  &copy; <span id="year"></span> THE TACO STOP Food Truck. All rights reserved.
+</footer>
+
+<script>
+document.getElementById('year').textContent = new Date().getFullYear();
+
+const prizes = [
+  { label: "$1 OFF",       sub: "orders $10+",  color: "#ff6b35", type: "win", code: "TACO1"  },
+  { label: "Try Again",    sub: "so close!",    color: "#2b2118", type: "lose" },
+  { label: "$2 OFF",       sub: "orders $20+",  color: "#2ec4b6", type: "win", code: "TACO2"  },
+  { label: "Try Again",    sub: "next time!",   color: "#2b2118", type: "lose" },
+  { label: "$1 OFF",       sub: "orders $10+",  color: "#ff6b35", type: "win", code: "TACO1"  },
+  { label: "Try Again",    sub: "no dice",      color: "#2b2118", type: "lose" },
+  { label: "$2 OFF",       sub: "orders $20+",  color: "#2ec4b6", type: "win", code: "TACO2"  },
+  { label: "Try Again",    sub: "keep trying",  color: "#2b2118", type: "lose" },
+];
+
+const wheel = document.getElementById('wheel');
+const numSlices = prizes.length;
+const sliceAngle = 360 / numSlices;
+const cx = 200, cy = 200, r = 196;
+
+function polarToCartesian(cx, cy, r, angleDeg){
+  const a = (angleDeg - 90) * Math.PI / 180;
+  return { x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) };
+}
+
+prizes.forEach((p, i) => {
+  const startAngle = i * sliceAngle;
+  const endAngle = startAngle + sliceAngle;
+  const start = polarToCartesian(cx, cy, r, endAngle);
+  const end = polarToCartesian(cx, cy, r, startAngle);
+  const largeArc = sliceAngle > 180 ? 1 : 0;
+
+  const path = document.createElementNS("http://www.w3.org/2000/svg","path");
+  const d = `M ${cx} ${cy} L ${start.x} ${start.y} A ${r} ${r} 0 ${largeArc} 0 ${end.x} ${end.y} Z`;
+  path.setAttribute("d", d);
+  path.setAttribute("fill", p.color);
+  path.setAttribute("stroke", "#fff8ee");
+  path.setAttribute("stroke-width", "2");
+  wheel.appendChild(path);
+
+  const midAngle = startAngle + sliceAngle / 2;
+  const textPos = polarToCartesian(cx, cy, r * 0.62, midAngle);
+  const textColor = p.color === "#2b2118" ? "#ffc93c" : "#fff8ee";
+
+  const text = document.createElementNS("http://www.w3.org/2000/svg","text");
+  text.setAttribute("x", textPos.x);
+  text.setAttribute("y", textPos.y);
+  text.setAttribute("fill", textColor);
+  text.setAttribute("font-size", "16");
+  text.setAttribute("font-weight", "bold");
+  text.setAttribute("text-anchor", "middle");
+  text.setAttribute("transform", `rotate(${midAngle}, ${textPos.x}, ${textPos.y})`);
+  text.textContent = p.label;
+  wheel.appendChild(text);
+});
+
+let currentRotation = 0;
+let spinning = false;
+const spinBtn = document.getElementById('spinBtn');
+const resultDiv = document.getElementById('result');
+const STORAGE_KEY = 'tacoStopSpinResult';
+
+function generateCouponCode(prefix){
+  const rand = Math.random().toString(36).slice(2, 8).toUpperCase();
+  return `${prefix}-${rand}`;
+}
+
+function drawCoupon(prize, code){
+  const canvas = document.getElementById('couponCanvas');
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+
+  // background
+  const grad = ctx.createLinearGradient(0, 0, w, h);
+  grad.addColorStop(0, '#ff6b35');
+  grad.addColorStop(1, '#d7263d');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, w, h);
+
+  // card
+  ctx.fillStyle = '#fff8ee';
+  ctx.strokeStyle = '#d7263d';
+  ctx.lineWidth = 6;
+  roundRect(ctx, 24, 24, w - 48, h - 48, 20);
+  ctx.fill();
+  ctx.setLineDash([10, 8]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // header
+  ctx.fillStyle = '#2b2118';
+  ctx.textAlign = 'center';
+  ctx.font = 'bold 30px Verdana, sans-serif';
+  ctx.fillText('🌮 THE TACO STOP 🚚', w / 2, 90);
+
+  // discount
+  ctx.fillStyle = '#d7263d';
+  ctx.font = 'bold 54px Verdana, sans-serif';
+  ctx.fillText(prize.label, w / 2, 170);
+
+  ctx.fillStyle = '#2b2118';
+  ctx.font = '20px Verdana, sans-serif';
+  ctx.fillText(`Valid on ${prize.sub}`, w / 2, 205);
+
+  // code box
+  ctx.fillStyle = '#ffc93c';
+  roundRect(ctx, w / 2 - 140, 235, 280, 55, 12);
+  ctx.fill();
+  ctx.fillStyle = '#2b2118';
+  ctx.font = 'bold 26px monospace';
+  ctx.fillText(code, w / 2, 271);
+
+  ctx.font = '14px Verdana, sans-serif';
+  ctx.fillStyle = '#6b5c4d';
+  ctx.fillText('Show this coupon at the window to redeem. One-time use.', w / 2, 320);
+  ctx.fillText(`Issued ${new Date().toLocaleDateString()}`, w / 2, 340);
+
+  // watermark
+  ctx.save();
+  ctx.globalAlpha = 0.14;
+  ctx.fillStyle = '#2b2118';
+  ctx.font = 'bold 26px Verdana, sans-serif';
+  ctx.translate(w / 2, h / 2);
+  ctx.rotate(-Math.PI / 8);
+  for (let y = -h; y < h; y += 60) {
+    for (let x = -w; x < w; x += 220) {
+      ctx.fillText('THE TACO STOP', x, y);
+    }
+  }
+  ctx.restore();
+
+  return canvas;
+}
+
+function roundRect(ctx, x, y, width, height, radius){
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.arcTo(x + width, y, x + width, y + height, radius);
+  ctx.arcTo(x + width, y + height, x, y + height, radius);
+  ctx.arcTo(x, y + height, x, y, radius);
+  ctx.arcTo(x, y, x + width, y, radius);
+  ctx.closePath();
+}
+
+function renderWinResult(prize, code){
+  const canvas = drawCoupon(prize, code);
+  const dataUrl = canvas.toDataURL('image/png');
+  resultDiv.innerHTML = `
+    <div class="result-card">
+      <h2>🎉 You Won!</h2>
+      <p>${prize.label} on ${prize.sub}</p>
+      <div class="code">${code}</div>
+      <br>
+      <img class="coupon-preview" src="${dataUrl}" alt="Your coupon">
+      <br>
+      <button class="save-btn" id="saveCouponBtn">📸 Save Coupon to Photos</button>
+    </div>`;
+
+  document.getElementById('saveCouponBtn').addEventListener('click', async () => {
+    canvas.toBlob(async (blob) => {
+      const filename = `taco-stop-coupon-${code}.png`;
+      if (navigator.canShare && navigator.canShare({ files: [new File([blob], filename, { type: 'image/png' })] })) {
+        try {
+          await navigator.share({
+            files: [new File([blob], filename, { type: 'image/png' })],
+            title: 'THE TACO STOP Coupon'
+          });
+          return;
+        } catch (e) {
+          // fall through to download
+        }
+      }
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }, 'image/png');
+  });
+}
+
+function renderLoseResult(prize){
+  resultDiv.innerHTML = `
+    <div class="result-card">
+      <h2>😢 ${prize.label}</h2>
+      <p>${prize.sub} — thanks for playing! This device has used its one spin.</p>
+    </div>`;
+}
+
+function renderAlreadySpun(saved){
+  if (saved.type === 'win') {
+    renderWinResult(saved.prize, saved.code);
+    const card = resultDiv.querySelector('.result-card h2');
+    if (card) card.textContent = '🌮 You already spun on this device!';
+  } else {
+    resultDiv.innerHTML = `
+      <div class="result-card">
+        <h2>🌮 You've already spun!</h2>
+        <p>This device only gets one spin. Thanks for playing THE TACO STOP wheel!</p>
+      </div>`;
+  }
+}
+
+function loadSavedResult(){
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function saveResult(prize, code){
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ prize, code, type: prize.type }));
+  } catch (e) { /* ignore storage errors */ }
+}
+
+const existing = loadSavedResult();
+if (existing) {
+  renderAlreadySpun(existing);
+}
+
+spinBtn.addEventListener('click', () => {
+  if (spinning) return;
+
+  const saved = loadSavedResult();
+  if (saved) {
+    renderAlreadySpun(saved);
+    return;
+  }
+
+  spinning = true;
+  spinBtn.disabled = true;
+  resultDiv.innerHTML = "";
+
+  const winningIndex = Math.floor(Math.random() * numSlices);
+  const targetSliceCenter = winningIndex * sliceAngle + sliceAngle / 2;
+  const extraSpins = 6;
+  const finalRotation = currentRotation
+    + (360 * extraSpins)
+    + (360 - targetSliceCenter)
+    - (currentRotation % 360);
+
+  currentRotation = finalRotation;
+  wheel.style.transform = `rotate(${finalRotation}deg)`;
+
+  setTimeout(() => {
+    const prize = prizes[winningIndex];
+    if (prize.type === "win") {
+      const code = generateCouponCode(prize.code);
+      saveResult(prize, code);
+      renderWinResult(prize, code);
+    } else {
+      saveResult(prize, null);
+      renderLoseResult(prize);
+    }
+    spinning = false;
+    spinBtn.disabled = false;
+  }, 4600);
+});
+</script>
+
+</body>
+</html>
